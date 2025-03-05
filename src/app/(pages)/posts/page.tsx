@@ -12,8 +12,8 @@ export default function PostsPage({}) {
 
   if (status === 'loading') {
     return (
-      <div className='p-4 flex justify-center items-center min-h-[50vh]'>
-        <Loader2 className='w-8 h-8 animate-spin' />
+      <div className='p-4 flex justify-center items-center min-h-screen'>
+        <Loader2 className='w-8 h-8 animate-spin' strokeWidth={0.5} />
       </div>
     );
   }
