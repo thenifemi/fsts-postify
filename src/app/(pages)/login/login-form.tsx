@@ -7,12 +7,13 @@ import {
   CardTitle,
   CardDescription,
 } from '@/app/components/ui/card';
-import { AUTH_ROUTES, PAGE_ROUTES } from '@/app/api/route_paths';
-import { GithubIcon, Loader2, AlertTriangle } from 'lucide-react';
+import { AUTH_ROUTES } from '@/app/api/route_paths';
+import { GithubIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from '@/app/context/session-provider';
+import { authError } from '@/app/utils/error-handler';
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -21,36 +22,33 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const { status, refetchSession } = useSession();
 
-  // No need for redirect here, the SessionProvider handles redirects
-
   useEffect(() => {
     // Check for error parameter in URL
     const errorParam = searchParams.get('error');
     if (errorParam) {
-      setError(true);
+      authError('Login attempt failed. Please try again.', {
+        title: 'Authentication Failed',
+        action: {
+          label: 'Try Again',
+          onClick: () => router.push(AUTH_ROUTES.LOGIN),
+        },
+      });
       setIsLoading(false);
-      // Clear error after 3 seconds
-      const timer = setTimeout(() => {
-        setError(false);
-      }, 3000);
-      return () => clearTimeout(timer);
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   const handleLogin = async () => {
+    // Prevent multiple clicks
+    if (isLoading) return;
+
     setIsLoading(true);
     setError(false);
 
     try {
       // Navigate to GitHub login
       router.push(AUTH_ROUTES.LOGIN);
-
-      setTimeout(() => {
-        refetchSession();
-        setIsLoading(false);
-      }, 2000);
     } catch (error) {
-      setError(true);
+      authError('Unable to connect to GitHub authentication service');
       setIsLoading(false);
     }
   };

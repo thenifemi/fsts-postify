@@ -5,6 +5,7 @@ import { ThemeProvider } from './components/theme-provider';
 import { cn } from '@/lib/utils';
 import { SessionProvider } from './context/session-provider';
 import { Header } from './components/header';
+import { Toaster } from './components/ui/toaster';
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -28,8 +29,8 @@ export default function RootLayout({
         <SessionProvider>
           <ThemeProvider attribute='class' defaultTheme='dark' enableSystem>
             <Header />
-
             {children}
+            <Toaster />
           </ThemeProvider>
         </SessionProvider>
       </body>
