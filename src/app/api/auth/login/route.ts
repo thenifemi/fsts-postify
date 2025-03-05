@@ -4,9 +4,11 @@ import { PAGE_ROUTES } from '../../route_paths';
 
 export async function GET(request: NextRequest) {
   try {
-    return await signIn('github', {
-      redirectTo: request.nextUrl.searchParams.get('callbackUrl') || PAGE_ROUTES.POSTS,
-    });
+    if (process.env.NODE_ENV === 'development') {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+    }
+
+    return signIn('github');
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.redirect(
