@@ -8,5 +8,11 @@ export default async function PostsPage({}) {
     redirect('/login');
   }
 
-  return <div>Posts</div>;
+  return (
+    <div className='p-4'>
+      <div className='flex items-center justify-between'>
+        <h1 className='text-2xl font-semibold'>Posts</h1>
+      </div>
+    </div>
+  );
 }
