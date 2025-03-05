@@ -5,7 +5,6 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
-  output   = "./src/server/prisma/generated"
 }
 
 model User {
@@ -16,6 +15,10 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  dislikes      Dislike[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -58,4 +61,59 @@ model VerificationToken {
   expires    DateTime
 
   @@id([identifier, token])
+}
+
+model Post {
+  id        String    @id @default(cuid())
+  content   String
+  imageUrls String[]
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  String
+  comments  Comment[]
+  likes     Like[]
+  dislikes  Dislike[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([id])
+}
+
+model Comment {
+  id        String    @id @default(cuid())
+  content   String
+  imageUrls String[]
+  likes     Like[]
+  dislikes  Dislike[]
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  String
+  post      Post      @relation(fields: [postId], references: [id])
+  postId    String
+  createdAt DateTime  @default(now())
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  likedById String
+  postId    String?
+  commentId String?
+  createdAt DateTime @default(now())
+
+  likedBy User     @relation(fields: [likedById], references: [id])
+  post    Post?    @relation(fields: [postId], references: [id])
+  comment Comment? @relation(fields: [commentId], references: [id])
+
+  @@unique([likedById, postId])
+}
+
+model Dislike {
+  id           String  @id @default(cuid())
+  dislikedById String
+  postId       String?
+  commentId    String?
+
+  dislikedBy User     @relation(fields: [dislikedById], references: [id])
+  post       Post?    @relation(fields: [postId], references: [id])
+  comment    Comment? @relation(fields: [commentId], references: [id])
+
+  @@unique([dislikedById, postId])
 }

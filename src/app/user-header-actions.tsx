@@ -59,6 +59,7 @@ export function UserHeaderActions() {
       onClick={handleLogout}
       disabled={isLoading}
       aria-label='Log out'
+      className='cursor-pointer'
     >
       {isLoading ? (
         <Loader2 className='size-4 animate-spin' />

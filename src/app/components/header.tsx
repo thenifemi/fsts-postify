@@ -6,6 +6,8 @@ import { Label } from '@radix-ui/react-label';
 import Image from 'next/image';
 import { UserHeaderActions } from '../user-header-actions';
 import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { PAGE_ROUTES } from '@/app/api/route_paths';
 
 export function Header() {
   const { session, status } = useSession();
@@ -30,13 +32,15 @@ export function Header() {
     if (status === 'authenticated') {
       return (
         <div className='top-0 right-0 p-4 w-full border-b flex items-center justify-between'>
-          <Image
-            src='/postify.png'
-            alt='Postify'
-            width={32}
-            height={32}
-            className='w-8 h-8'
-          />
+          <Link href={PAGE_ROUTES.HOME}>
+            <Image
+              src='/postify.png'
+              alt='Postify'
+              width={32}
+              height={32}
+              className='w-8 h-8'
+            />
+          </Link>
 
           <div className='flex items-center gap-4'>
             <Avatar>
