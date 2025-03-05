@@ -18,6 +18,18 @@ export const POST_ROUTES = {
   DELETE: (id: string) => `/api/post/${id}/delete`,
 } as const;
 
+// Comment routes
+export const COMMENT_ROUTES = {
+  LIST: (postId: string) => `/api/post/${postId}/comments`,
+  CREATE: (postId: string) => `/api/post/${postId}/comments/create`,
+  DETAIL: (postId: string, commentId: string) =>
+    `/api/post/${postId}/comments/${commentId}`,
+  UPDATE: (postId: string, commentId: string) =>
+    `/api/post/${postId}/comments/${commentId}/update`,
+  DELETE: (postId: string, commentId: string) =>
+    `/api/post/${postId}/comments/${commentId}/delete`,
+} as const;
+
 // Page routes (not API routes, but included for convenience)
 export const PAGE_ROUTES = {
   HOME: '/',
