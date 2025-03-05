@@ -8,7 +8,10 @@ export async function GET(request: NextRequest) {
       await new Promise((resolve) => setTimeout(resolve, 800));
     }
 
-    return signIn('github');
+    const redirectTo =
+      request.nextUrl.searchParams.get('callbackUrl') || PAGE_ROUTES.POSTS;
+
+    return signIn('github', { redirectTo });
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.redirect(

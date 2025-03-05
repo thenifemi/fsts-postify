@@ -20,6 +20,10 @@ const SessionContext = createContext<SessionContextType>({
 
 export const useSession = () => useContext(SessionContext);
 
+// Define route arrays with literal types
+const protectedRoutes = ['/posts'] as const;
+const guestRoutes = ['/login'] as const;
+
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [status, setStatus] = useState<
@@ -38,18 +42,25 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       setSession(newSession);
       setStatus(newSession ? 'authenticated' : 'unauthenticated');
 
-      if (newSession) {
-        if (pathname === PAGE_ROUTES.LOGIN) {
-          router.push(PAGE_ROUTES.POSTS);
-        }
-      } else {
-        if (pathname === PAGE_ROUTES.POSTS) {
-          router.push(PAGE_ROUTES.LOGIN);
-        }
-      }
+      // Handle auth-based redirects centrally
+      handleAuthRedirects(newSession);
     } catch (error) {
       console.error('Error fetching session:', error);
       setStatus('unauthenticated');
+    }
+  };
+
+  const handleAuthRedirects = (session: Session | null) => {
+    const publicRoutes = ['/'] as const;
+
+    if (session) {
+      if (guestRoutes.includes(pathname as '/login')) {
+        router.push(PAGE_ROUTES.POSTS);
+      }
+    } else {
+      if (protectedRoutes.includes(pathname as '/posts')) {
+        router.push(PAGE_ROUTES.LOGIN);
+      }
     }
   };
 

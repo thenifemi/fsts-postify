@@ -6,15 +6,9 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { PAGE_ROUTES } from '@/app/api/route_paths';
 
-export default function PostsPage(props) {
+export default function PostsPage({}) {
   const { status } = useSession();
   const router = useRouter();
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push(PAGE_ROUTES.LOGIN);
-    }
-  }, [status, router]);
 
   if (status === 'loading') {
     return (
@@ -28,7 +22,9 @@ export default function PostsPage(props) {
     return (
       <div className='p-4'>
         <div className='flex items-center justify-between'>
-          <h1 className='text-2xl font-semibold'>Posts</h1>
+          <h1 className='text-base font-semibold text-muted-foreground'>
+            Posts
+          </h1>
         </div>
       </div>
     );

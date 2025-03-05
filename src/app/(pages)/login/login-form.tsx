@@ -21,11 +21,7 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const { status, refetchSession } = useSession();
 
-  useEffect(() => {
-    if (status === 'authenticated') {
-      router.push(PAGE_ROUTES.POSTS);
-    }
-  }, [status, router]);
+  // No need for redirect here, the SessionProvider handles redirects
 
   useEffect(() => {
     // Check for error parameter in URL
@@ -59,20 +55,6 @@ export function LoginForm() {
     }
   };
 
-  if (status === 'loading') {
-    return (
-      <Card className='w-full max-w-md space-y-2'>
-        <CardHeader>
-          <CardTitle>Postify</CardTitle>
-          <CardDescription>Checking your session...</CardDescription>
-        </CardHeader>
-        <CardContent className='flex justify-center'>
-          <Loader2 className='w-6 h-6 animate-spin' />
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className='w-full max-w-md space-y-2'>
       <CardHeader>
@@ -82,34 +64,25 @@ export function LoginForm() {
 
       <CardContent>
         <div className='flex flex-col gap-6'>
-          {error ? (
-            <Button
-              onClick={() => setError(false)}
-              variant='destructive'
-              className='cursor-pointer'
-            >
-              <AlertTriangle className='w-4 h-4 mr-2' />
-              Login failed. Try again
-            </Button>
-          ) : (
-            <Button
-              onClick={handleLogin}
-              disabled={isLoading}
-              className='cursor-pointer'
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className='w-4 h-4 mr-2 animate-spin' />
-                  Connecting to GitHub...
-                </>
-              ) : (
-                <>
-                  <GithubIcon className='w-4 h-4 mr-2' />
-                  Continue with Github
-                </>
-              )}
-            </Button>
-          )}
+          <Button
+            onClick={handleLogin}
+            disabled={isLoading}
+            className='cursor-pointer'
+          >
+            {isLoading || status === 'loading' ? (
+              <>
+                <Loader2 className='w-4 h-4 mr-2 animate-spin' />
+                {status === 'loading'
+                  ? 'Checking your session...'
+                  : 'Connecting to GitHub...'}
+              </>
+            ) : (
+              <>
+                <GithubIcon className='w-4 h-4 mr-2' />
+                Continue with Github
+              </>
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>
