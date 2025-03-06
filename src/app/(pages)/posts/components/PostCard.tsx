@@ -93,7 +93,7 @@ export default function PostCard({ post }: PostCardProps) {
   }
 
   function handleComment() {
-    toast.info('Comment feature coming soon');
+    window.location.href = `/posts/${post.id}`;
   }
 
   function handleShare() {

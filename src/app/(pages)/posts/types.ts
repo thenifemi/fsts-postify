@@ -32,3 +32,25 @@ export interface PostsApiResponse {
   totalPages: number;
   currentPage: number;
 }
+
+export interface Comment {
+  id: string;
+  content: string;
+  imageUrls: string[];
+  authorId: string;
+  postId: string;
+  createdAt: string;
+  updatedAt: string;
+  author: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+  isLiked?: boolean;
+  isDisliked?: boolean;
+  _count: {
+    likes: number;
+    dislikes: number;
+  };
+}

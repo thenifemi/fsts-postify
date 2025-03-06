@@ -8,6 +8,8 @@ export async function GET(
   { params }: { params: { postId: string } }
 ) {
   try {
+    const session = await auth();
+    const userId = session?.user?.id;
     const postId = params.postId;
 
     // Verify post exists
@@ -40,6 +42,39 @@ export async function GET(
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    // If user is authenticated, check which comments they've liked/disliked
+    if (userId) {
+      const userLikes = await db.like.findMany({
+        where: {
+          likedById: userId,
+          commentId: { in: comments.map(comment => comment.id) },
+        },
+        select: {
+          commentId: true,
+        },
+      });
+
+      const userDislikes = await db.dislike.findMany({
+        where: {
+          dislikedById: userId,
+          commentId: { in: comments.map(comment => comment.id) },
+        },
+        select: {
+          commentId: true,
+        },
+      });
+
+      // Create lookup sets for faster checking
+      const likedCommentIds = new Set(userLikes.map(like => like.commentId));
+      const dislikedCommentIds = new Set(userDislikes.map(dislike => dislike.commentId));
+
+      // Add isLiked and isDisliked flags to each comment
+      comments.forEach(comment => {
+        comment.isLiked = likedCommentIds.has(comment.id);
+        comment.isDisliked = dislikedCommentIds.has(comment.id);
+      });
+    }
 
     return NextResponse.json(comments, { status: 200 });
   } catch (error) {
@@ -98,6 +133,22 @@ export async function POST(
         post: {
           connect: {
             id: postId,
+          },
+        },
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true, 
+            email: true,
+            image: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+            dislikes: true,
           },
         },
       },

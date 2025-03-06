@@ -40,7 +40,7 @@ export async function POST(
       });
 
       return NextResponse.json(
-        { liked: false, message: 'Comment unliked successfully' },
+        { liked: false, isLiked: false, message: 'Comment unliked successfully' },
         { status: 200 }
       );
     } else {
@@ -77,7 +77,7 @@ export async function POST(
       });
 
       return NextResponse.json(
-        { liked: true, message: 'Comment liked successfully' },
+        { liked: true, isLiked: true, message: 'Comment liked successfully' },
         { status: 200 }
       );
     }

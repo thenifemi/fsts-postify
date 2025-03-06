@@ -4,9 +4,14 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/server/auth/auth';
 import { db } from '@/server/prisma/db';
 
-export async function GET({ params }: { params: { postId: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { postId: string } }
+) {
   try {
     const postId = params.postId;
+    const session = await auth();
+    const userId = session?.user?.id;
 
     const post = await db.post.findUnique({
       where: { id: postId },
@@ -33,7 +38,59 @@ export async function GET({ params }: { params: { postId: string } }) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    return NextResponse.json(post, { status: 200 });
+    // Get comments for this post
+    const comments = await db.comment.findMany({
+      where: { postId },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+            dislikes: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Check if the current user has liked or disliked the post
+    let isLiked = false;
+    let isDisliked = false;
+
+    if (userId) {
+      const like = await db.like.findFirst({
+        where: {
+          postId,
+          likedById: userId,
+        },
+      });
+
+      const dislike = await db.dislike.findFirst({
+        where: {
+          postId,
+          dislikedById: userId,
+        },
+      });
+
+      isLiked = !!like;
+      isDisliked = !!dislike;
+    }
+
+    return NextResponse.json({
+      post: {
+        ...post,
+        isLiked,
+        isDisliked,
+      },
+      comments,
+    }, { status: 200 });
   } catch (error) {
     console.error(`Error fetching post ${params.postId}:`, error);
     return NextResponse.json(

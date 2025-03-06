@@ -8,12 +8,14 @@ interface ActionButtonProps {
   disabled?: boolean;
   motionProps?: Record<string, any>;
   variant?: 'outline' | 'ghost';
+  size?: 'sm' | 'default' | 'lg';
 }
 
 export default function ActionButton({
   icon,
   label,
   variant = 'ghost',
+  size = 'sm',
   onClick,
   disabled,
   motionProps,
@@ -22,7 +24,7 @@ export default function ActionButton({
     <div className='flex-1'>
       <Button
         variant={variant}
-        size='sm'
+        size={size}
         className='w-min cursor-pointer hover:bg-muted-foreground/10 focus:ring-2 focus:ring-primary/20'
         onClick={onClick}
         disabled={disabled}
