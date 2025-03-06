@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/app/components/ui/button';
 import {
   Dialog,
@@ -19,6 +19,8 @@ import { toast } from 'sonner';
 import { Input } from '@/app/components/ui/input';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiError } from '@/app/utils/error-handler';
 
 interface CreateEditPostProps {
   postId?: string;
@@ -45,7 +47,49 @@ export default function CreateEditPost({
 }: CreateEditPostProps) {
   const [open, setOpen] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
+
+  const createEditPostMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const url = isEdit
+        ? POST_ROUTES.UPDATE(postId as string)
+        : POST_ROUTES.CREATE;
+
+      const response = await fetch(url, {
+        method: isEdit ? 'PUT' : 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast.success(
+        isEdit ? 'Post updated successfully' : 'Post created successfully'
+      );
+      setOpen(false);
+      formik.resetForm();
+      setImageUrls([]);
+
+      // Invalidate relevant queries to refetch data
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      if (isEdit && postId) {
+        queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      }
+
+      if (onSuccess) {
+        onSuccess();
+      }
+    },
+    onError: (error: Error) => {
+      apiError(`Failed to save post: ${error.message}`);
+      console.error('Error saving post:', error);
+    },
+  });
 
   const formik = useFormik({
     initialValues: {
@@ -54,49 +98,13 @@ export default function CreateEditPost({
     },
     validationSchema,
     onSubmit: async (values) => {
-      setIsSubmitting(true);
+      const formData = new FormData();
+      formData.append('content', values.content);
+      values.images.forEach((image) => {
+        formData.append('images', image);
+      });
 
-      try {
-        const formData = new FormData();
-        formData.append('content', values.content);
-        values.images.forEach((image) => {
-          formData.append('images', image);
-        });
-
-        const url = isEdit
-          ? POST_ROUTES.UPDATE(postId as string)
-          : POST_ROUTES.CREATE;
-
-        const response = await fetch(url, {
-          method: isEdit ? 'PUT' : 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Failed to save post: ${errorText}`);
-        }
-
-        toast.success(
-          isEdit ? 'Post updated successfully' : 'Post created successfully'
-        );
-        setOpen(false);
-        formik.resetForm();
-        setImageUrls([]);
-
-        if (onSuccess) {
-          onSuccess();
-        }
-      } catch (error) {
-        console.error('Error saving post:', error);
-        toast.error(
-          `Failed to save post: ${
-            error instanceof Error ? error.message : 'Unknown error'
-          }`
-        );
-      } finally {
-        setIsSubmitting(false);
-      }
+      createEditPostMutation.mutate(formData);
     },
   });
 
@@ -250,10 +258,12 @@ export default function CreateEditPost({
 
             <Button
               type='submit'
-              disabled={isSubmitting || isPostButtonDisabled}
+              disabled={
+                createEditPostMutation.isPending || isPostButtonDisabled
+              }
               className='cursor-pointer'
             >
-              {isSubmitting && (
+              {createEditPostMutation.isPending && (
                 <Loader2 className='mr-2 h-4 w-4 animate-spin' />
               )}
               {isEdit ? 'Update' : 'Post'}

@@ -5,8 +5,8 @@ import { ThemeProvider } from './components/theme-provider';
 import { cn } from '@/lib/utils';
 import { SessionProvider } from './context/session-provider';
 import { Header } from './components/header';
-import { Toaster } from './components/ui/toaster';
 import { ReactQueryProvider } from './components/query-provider';
+import { Toaster } from 'sonner';
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -32,7 +32,8 @@ export default function RootLayout({
             <ThemeProvider attribute='class' defaultTheme='dark' enableSystem>
               <Header />
               {children}
-              <Toaster />
+
+              <Toaster position='top-center' />
             </ThemeProvider>
           </ReactQueryProvider>
         </SessionProvider>

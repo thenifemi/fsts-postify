@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { toast } from '@/app/components/ui/use-toast';
-import { ToastAction } from '@/app/components/ui/toast';
+import { toast } from 'sonner';
 
 type ErrorType = 'auth' | 'api' | 'validation' | 'unknown';
 
@@ -26,15 +25,13 @@ export function handleError(error: Error | string, options: ErrorOptions = {}) {
   // Default titles based on error type
   const defaultTitles = {
     auth: 'Authentication Error',
-    api: 'API Error',
+    api: 'Server Error',
     validation: 'Validation Error',
     unknown: 'An error occurred',
   };
 
   // Show toast with appropriate styling
-  toast({
-    variant: 'destructive',
-    title: title || defaultTitles[type],
+  toast.error(title || defaultTitles[type], {
     description: errorMessage,
   });
 
