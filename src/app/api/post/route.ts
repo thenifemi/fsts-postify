@@ -5,6 +5,9 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await auth();
+    const userId = session?.user?.id;
+    
     const searchParams = request.nextUrl.searchParams;
     const authorEmail = searchParams.get('authorEmail') ?? undefined;
 
@@ -36,6 +39,18 @@ export async function GET(request: NextRequest) {
               image: true,
             },
           },
+          likes: userId ? {
+            where: {
+              likedById: userId,
+            },
+            select: { id: true },
+          } : undefined,
+          dislikes: userId ? {
+            where: {
+              dislikedById: userId,
+            },
+            select: { id: true },
+          } : undefined,
           _count: {
             select: {
               likes: true,
@@ -47,12 +62,22 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
+    // Add isLiked and isDisliked flags to each post based on the user's interactions
+    const postsWithInteractionFlags = posts.map(post => ({
+      ...post,
+      isLiked: post.likes && post.likes.length > 0,
+      isDisliked: post.dislikes && post.dislikes.length > 0,
+      // Remove the likes and dislikes arrays from the response to reduce payload size
+      likes: undefined,
+      dislikes: undefined,
+    }));
+
     // Calculate pagination metadata
     const totalPages = Math.ceil(totalCount / limit);
 
     return NextResponse.json(
       {
-        posts,
+        posts: postsWithInteractionFlags,
         totalCount,
         totalPages,
         currentPage: page,

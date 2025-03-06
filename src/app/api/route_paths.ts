@@ -16,6 +16,8 @@ export const POST_ROUTES = {
   DETAIL: (id: string) => `/api/post/${id}`,
   UPDATE: (id: string) => `/api/post/${id}`,
   DELETE: (id: string) => `/api/post/${id}`,
+  LIKE: (id: string) => `/api/post/${id}/like`,
+  DISLIKE: (id: string) => `/api/post/${id}/dislike`,
 } as const;
 
 // Comment routes

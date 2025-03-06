@@ -155,7 +155,7 @@ export default function CreateEditPost({
         <DialogTrigger asChild>{trigger}</DialogTrigger>
       ) : (
         <DialogTrigger asChild>
-          <Button variant='outline'>
+          <Button variant='outline' className='cursor-pointer'>
             <PlusCircle className='w-4 h-4' strokeWidth={1} />
             Create Post
           </Button>
