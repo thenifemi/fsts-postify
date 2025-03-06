@@ -12,10 +12,10 @@ export const AUTH_ROUTES = {
 // Post routes
 export const POST_ROUTES = {
   LIST: '/api/post',
-  CREATE: '/api/post/create',
+  CREATE: '/api/post',
   DETAIL: (id: string) => `/api/post/${id}`,
-  UPDATE: (id: string) => `/api/post/${id}/update`,
-  DELETE: (id: string) => `/api/post/${id}/delete`,
+  UPDATE: (id: string) => `/api/post/${id}`,
+  DELETE: (id: string) => `/api/post/${id}`,
 } as const;
 
 // Comment routes

@@ -77,18 +77,17 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData();
-    const title = formData.get('title') as string;
-    const content = formData.get('content') as string;
-    const imageUrls =
-      (formData.get('imageUrls') as string)?.split(',').filter(Boolean) || [];
-    const published = formData.get('published') === 'true';
+    const content = (formData.get('content') as string) || '';
 
-    if (!title || !content) {
-      return NextResponse.json(
-        { error: 'Title and content are required' },
-        { status: 400 }
-      );
-    }
+    //TODO: Process and upload image files to storage
+
+    const imageFiles = formData.getAll('images');
+    console.log(`Received ${imageFiles.length} image files`);
+
+    const imageUrls = Array.from(
+      { length: imageFiles.length },
+      (_, i) => `https://example.com/image-${Date.now()}-${i}.jpg`
+    );
 
     try {
       const post = await db.post.create({
