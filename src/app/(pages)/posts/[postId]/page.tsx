@@ -168,7 +168,7 @@ export default function PostPage() {
 
       {/* Main post */}
       <Card className='rounded-xl shadow-md overflow-hidden border-neutral-200 dark:border-neutral-800'>
-        <CardContent className='space-y-6 pt-6'>
+        <CardContent className='space-y-6'>
           {/* Author info */}
           <div className='flex items-center gap-4'>
             <Avatar className='h-10 w-10 ring-2 ring-background'>
@@ -296,7 +296,7 @@ export default function PostPage() {
       {/* Comments section */}
       <div className='mt-6 pt-6 border-t space-y-4'>
         <div className='flex justify-between items-center'>
-          <h2 className='text-base font-semibold text-muted-foreground'>
+          <h2 className='text-sm text-muted-foreground'>
             Comments ({comments.length})
           </h2>
         </div>
