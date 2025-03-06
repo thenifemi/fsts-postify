@@ -30,7 +30,8 @@ export default function PostsPage() {
 
         return response.json();
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        const errorMessage =
+          err instanceof Error ? err.message : 'Unknown error';
         console.error('Failed to fetch posts:', errorMessage);
         toast.error('Failed to fetch posts');
         throw err;
@@ -61,7 +62,7 @@ export default function PostsPage() {
   // Authenticated state with content
   if (status === 'authenticated') {
     return (
-      <div className='p-4 space-y-8 max-w-lg mx-auto'>
+      <div className='p-4 space-y-8 max-w-lg mx-auto mt-20'>
         <div className='flex flex-row items-center justify-between'>
           <h1 className='text-base font-semibold text-muted-foreground'>
             Posts
@@ -82,6 +83,5 @@ export default function PostsPage() {
     );
   }
 
-  // Unauthenticated state
   return null;
 }

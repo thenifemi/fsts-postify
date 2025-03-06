@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, MouseEvent } from 'react';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -9,22 +9,22 @@ import {
   CircleArrowDown,
   Share2,
 } from 'lucide-react';
+import Link from 'next/link';
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from '@/app/components/ui/avatar';
-import { Button } from '@/app/components/ui/button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { POST_ROUTES } from '@/app/api/route_paths';
 import { toast } from 'sonner';
 import { apiError } from '@/app/utils/error-handler';
 import { cn } from '@/lib/utils';
 import NumberFlow from '@number-flow/react';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
 
 import { PostWithRelations } from '../types';
+import { Card, CardContent, CardFooter } from '@/app/components/ui/card';
+import ActionButton from './ActionButton';
 
 interface PostCardProps {
   post: PostWithRelations;
@@ -35,11 +35,9 @@ export default function PostCard({ post }: PostCardProps) {
   const queryClient = useQueryClient();
   const hasImages = post.imageUrls?.length > 0;
 
-  // Track user interactions with local state synced to props
   const [hasLiked, setHasLiked] = useState(!!post.isLiked);
   const [hasDisliked, setHasDisliked] = useState(!!post.isDisliked);
 
-  // Update local state when post data changes (after query invalidation)
   useEffect(() => {
     setHasLiked(!!post.isLiked);
     setHasDisliked(!!post.isDisliked);
@@ -106,57 +104,59 @@ export default function PostCard({ post }: PostCardProps) {
   }
 
   return (
-    <div className='rounded-lg border bg-card shadow-sm transition-shadow hover:shadow-md overflow-hidden'>
-      <div className='p-4'>
-        {/* Author info */}
-        <div className='mb-3 flex items-center space-x-3'>
-          <Link
-            href={`/profile/${post.author.id}`}
-            className='focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-full'
-          >
-            <Avatar className='h-8 w-8'>
-              <AvatarImage
-                src={post.author.image || undefined}
-                alt={post.author.name || 'User'}
-              />
-              <AvatarFallback>
-                {post.author.name?.charAt(0) || 'U'}
-              </AvatarFallback>
-            </Avatar>
-          </Link>
-
-          <div>
-            <Link
-              href={`/profile/${post.author.id}`}
-              className='hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded-sm'
+    <Card className='rounded-xl shadow-md hover:shadow-lg overflow-hidden group border-neutral-200 dark:border-neutral-800'>
+      <Link href={`/posts/${post.id}`}>
+        <CardContent className='space-y-6'>
+          {/* Author info */}
+          <div className='flex items-center gap-4'>
+            <div
+              className='focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-full hover:opacity-90'
+              onClick={(e: MouseEvent) => {
+                e.stopPropagation();
+                window.location.href = `/profile/${post.author.id}`;
+              }}
             >
-              <p className='text-xs font-medium'>{post.author.name}</p>
-            </Link>
+              <Avatar className='h-8 w-8 ring-2 ring-background'>
+                <AvatarImage
+                  src={post.author.image || undefined}
+                  alt={post.author.name || 'User'}
+                />
+                <AvatarFallback className='bg-primary/10 text-primary'>
+                  {post.author.name?.charAt(0) || 'U'}
+                </AvatarFallback>
+              </Avatar>
+            </div>
 
-            <p className='text-xs text-muted-foreground'>
-              {formatDistanceToNow(new Date(post.createdAt), {
-                addSuffix: true,
-              })}
-            </p>
+            <div className='space-y-1'>
+              <div
+                className='hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 rounded-sm inline-block cursor-pointer'
+                onClick={(e: MouseEvent) => {
+                  e.stopPropagation();
+                  window.location.href = `/profile/${post.author.id}`;
+                }}
+              >
+                <p className='text-xs font-semibold'>{post.author.name}</p>
+              </div>
+
+              <p className='text-[10px] text-muted-foreground'>
+                {formatDistanceToNow(new Date(post.createdAt), {
+                  addSuffix: true,
+                })}
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Post content */}
-        <Link
-          href={`/posts/${post.id}`}
-          className='focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md block'
-        >
-          {post.content && <p className='mb-3 text-sm py-2'>{post.content}</p>}
-        </Link>
+          {/* Post content */}
+          {post.content && (
+            <p className='text-sm leading-relaxed text-neutral-800 dark:text-neutral-200'>
+              {post.content}
+            </p>
+          )}
 
-        {/* Images */}
-        {hasImages && (
-          <div className='mb-3'>
-            <Link
-              href={`/posts/${post.id}`}
-              className='focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-md block'
-            >
-              <div className='relative aspect-video overflow-hidden rounded-md bg-muted'>
+          {/* Images */}
+          {hasImages && (
+            <div className='space-y-3'>
+              <div className='relative aspect-[16/9] overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-900'>
                 <Image
                   src={post.imageUrls[activeImage]}
                   alt={`Post image ${activeImage + 1}`}
@@ -164,149 +164,100 @@ export default function PostCard({ post }: PostCardProps) {
                   sizes='(max-width: 640px) 100vw, (max-width: 768px) 80vw, (max-width: 1024px) 50vw, 33vw'
                   className='object-cover'
                   priority={activeImage === 0}
-                  quality={80}
+                  quality={85}
                 />
               </div>
-            </Link>
 
-            {/* Image thumbnails if multiple images */}
-            {post.imageUrls.length > 1 && (
-              <div className='mt-2 flex space-x-1 overflow-x-auto scrollbar-thin'>
-                {post.imageUrls.map((url, index) => (
-                  <button
-                    key={index}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setActiveImage(index);
-                    }}
-                    className={cn(
-                      'relative h-12 w-12 flex-shrink-0 cursor-pointer overflow-hidden rounded-md border-2',
-                      activeImage === index
-                        ? 'border-primary'
-                        : 'border-transparent'
-                    )}
-                    aria-label={`View image ${index + 1}`}
-                  >
-                    <Image
-                      src={url}
-                      alt={`Thumbnail ${index + 1}`}
-                      fill
-                      sizes='48px'
-                      className='object-cover'
-                      quality={60}
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+              {/* Image thumbnails if multiple images */}
+              {post.imageUrls.length > 1 && (
+                <div className='flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-neutral-300 dark:scrollbar-thumb-neutral-700'>
+                  {post.imageUrls.map((url, index) => (
+                    <button
+                      key={index}
+                      onClick={(e: MouseEvent) => {
+                        e.preventDefault();
+                        setActiveImage(index);
+                      }}
+                      className={cn(
+                        'relative h-14 w-14 flex-shrink-0 cursor-pointer overflow-hidden rounded-md border-2 hover:opacity-90',
+                        activeImage === index
+                          ? 'border-primary ring-2 ring-primary/20'
+                          : 'border-neutral-200 dark:border-neutral-800'
+                      )}
+                      aria-label={`View image ${index + 1}`}
+                    >
+                      <Image
+                        src={url}
+                        alt={`Thumbnail ${index + 1}`}
+                        fill
+                        sizes='56px'
+                        className='object-cover'
+                        quality={70}
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Link>
 
-        {/* Action buttons */}
-        <div className='mt-2 flex border-t pt-3'>
-          <ActionButton
-            icon={
-              <CircleArrowUp
-                className={cn('h-4 w-4', {
-                  'text-green-600': hasLiked,
-                })}
-                strokeWidth={1.5}
-              />
-            }
-            label={
-              post._count.likes > 0 ? (
-                <NumberFlow value={post._count.likes} />
-              ) : null
-            }
-            onClick={handleLike}
-            disabled={likeMutation.isPending}
-            motionProps={{
-              animate: hasLiked ? { y: [0, -5, 0] } : {},
-              transition: { duration: 0.3 },
-            }}
-          />
+      {/* Action buttons */}
+      <CardFooter className='flex justify-between gap-2'>
+        <ActionButton
+          icon={
+            <CircleArrowUp
+              className={cn('h-4 w-4', {
+                'text-green-600 dark:text-green-500': hasLiked,
+              })}
+              strokeWidth={1.5}
+            />
+          }
+          label={
+            post._count.likes > 0 ? (
+              <NumberFlow value={post._count.likes} />
+            ) : null
+          }
+          onClick={handleLike}
+          disabled={likeMutation.isPending}
+        />
 
-          <ActionButton
-            icon={
-              <CircleArrowDown
-                className={cn('h-4 w-4', {
-                  'text-red-600': hasDisliked,
-                })}
-                strokeWidth={1.5}
-              />
-            }
-            label={
-              post._count.dislikes > 0 ? (
-                <NumberFlow value={post._count.dislikes} />
-              ) : null
-            }
-            onClick={handleDislike}
-            disabled={dislikeMutation.isPending}
-            motionProps={{
-              animate: hasDisliked ? { y: [0, 5, 0] } : {},
-              transition: { duration: 0.3 },
-            }}
-          />
+        <ActionButton
+          icon={
+            <CircleArrowDown
+              className={cn('h-4 w-4', {
+                'text-red-600 dark:text-red-500': hasDisliked,
+              })}
+              strokeWidth={1.5}
+            />
+          }
+          label={
+            post._count.dislikes > 0 ? (
+              <NumberFlow value={post._count.dislikes} />
+            ) : null
+          }
+          onClick={handleDislike}
+          disabled={dislikeMutation.isPending}
+        />
 
-          <ActionButton
-            icon={<MessageCircle className='h-4 w-4' strokeWidth={1.5} />}
-            label={
-              post._count.comments > 0 ? (
-                <NumberFlow value={post._count.comments} />
-              ) : null
-            }
-            onClick={handleComment}
-            motionProps={{
-              whileHover: { rotate: [-5, 5, 0] },
-              transition: { duration: 0.3 },
-            }}
-          />
+        <ActionButton
+          icon={<MessageCircle className='h-4 w-4' strokeWidth={1.5} />}
+          label={
+            post._count.comments > 0 ? (
+              <NumberFlow value={post._count.comments} />
+            ) : null
+          }
+          onClick={handleComment}
+        />
 
-          <ActionButton
-            icon={<Share2 className='h-4 w-4' strokeWidth={1.5} />}
-            label='Share'
-            onClick={handleShare}
-            motionProps={{
-              whileHover: { rotate: [0, 15, -15, 0] },
-              transition: { duration: 0.5 },
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface ActionButtonProps {
-  icon: React.ReactNode;
-  label: React.ReactNode;
-  onClick: () => void;
-  disabled?: boolean;
-  motionProps?: Record<string, any>;
-}
-
-function ActionButton({
-  icon,
-  label,
-  onClick,
-  disabled,
-  motionProps,
-}: ActionButtonProps) {
-  return (
-    <motion.div className='flex-1' whileTap={{ scale: 0.95 }}>
-      <Button
-        variant='ghost'
-        size='sm'
-        className='w-full cursor-pointer hover:bg-transparent focus:ring-2 focus:ring-primary/20'
-        onClick={onClick}
-        disabled={disabled}
-        aria-label={typeof label === 'string' ? label : undefined}
-      >
-        <motion.div {...motionProps}>{icon}</motion.div>
-        {label && (
-          <span className='ml-1 text-xs text-muted-foreground'>{label}</span>
-        )}
-      </Button>
-    </motion.div>
+        <ActionButton
+          variant='outline'
+          icon={<Share2 className='h-4 w-4' strokeWidth={1.5} />}
+          label='Share'
+          onClick={handleShare}
+        />
+      </CardFooter>
+    </Card>
   );
 }

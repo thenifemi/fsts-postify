@@ -12,12 +12,9 @@ import { PAGE_ROUTES } from '@/app/api/route_paths';
 export function Header() {
   const { session, status } = useSession();
 
-  // Return null when not authenticated - don't show header at all
   if (status === 'unauthenticated') {
     return null;
   }
-
-  // Show loading indicator while checking session
 
   // Show header with user info if authenticated
   if (session?.user) {
@@ -31,7 +28,7 @@ export function Header() {
 
     if (status === 'authenticated') {
       return (
-        <div className='top-0 right-0 p-4 w-full border-b flex items-center justify-between'>
+        <div className='fixed bg-background z-50 top-0 right-0 p-4 w-full border-b flex items-center justify-between'>
           <Link href={PAGE_ROUTES.HOME}>
             <Image
               src='/postify.png'
