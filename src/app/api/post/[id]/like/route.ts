@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await auth();
@@ -17,7 +17,7 @@ export async function POST(
     }
 
     const userId = session.user.id;
-    const postId = params.id;
+    const postId = context.params.id;
 
     // Check if the post exists
     const post = await db.post.findUnique({
