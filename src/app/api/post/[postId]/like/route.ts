@@ -1,23 +1,25 @@
-import { type NextRequest, NextResponse } from 'next/server';
-
 import { auth } from '@/server/auth/auth';
 import { db } from '@/server/prisma/db';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { postId: string } }
+  context: { params: { postId: string } }
 ) {
   try {
     const session = await auth();
 
     if (!session?.user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
     }
 
-    const postId = params.postId;
     const userId = session.user.id;
+    const postId = context.params.postId;
 
-    // Verify post exists
+    // Check if the post exists
     const post = await db.post.findUnique({
       where: { id: postId },
     });
@@ -26,67 +28,56 @@ export async function POST(
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    // Check if user already liked the post
-    const existingLike = await db.like.findFirst({
+    // Check if the user has already liked this post
+    const existingLike = await db.like.findUnique({
       where: {
-        postId,
-        likedById: userId,
+        likedById_postId: {
+          likedById: userId || '',
+          postId,
+        },
       },
     });
 
+    // If already liked, remove the like (toggle behavior)
     if (existingLike) {
-      // User already liked the post, so unlike it
       await db.like.delete({
-        where: { id: existingLike.id },
-      });
-
-      return NextResponse.json(
-        { liked: false, message: 'Post unliked successfully' },
-        { status: 200 }
-      );
-    } else {
-      // User hasn't liked the post, so like it
-
-      // First, remove any existing dislike
-      const existingDislike = await db.dislike.findFirst({
         where: {
-          postId,
-          dislikedById: userId,
-        },
-      });
-
-      if (existingDislike) {
-        await db.dislike.delete({
-          where: { id: existingDislike.id },
-        });
-      }
-
-      // Then create the like
-      await db.like.create({
-        data: {
-          likedBy: {
-            connect: {
-              id: userId,
-            },
-          },
-          post: {
-            connect: {
-              id: postId,
-            },
-          },
+          id: existingLike.id,
         },
       });
 
       return NextResponse.json(
-        { liked: true, message: 'Post liked successfully' },
+        { message: 'Like removed', isLiked: false },
         { status: 200 }
       );
     }
-  } catch (error) {
-    console.error(`Error liking/unliking post ${params.postId}:`, error);
+
+    // Remove any dislike if it exists (can't like and dislike simultaneously)
+    await db.dislike.deleteMany({
+      where: {
+        dislikedById: userId,
+        postId,
+      },
+    });
+
+    // Create a new like
+    await db.like.create({
+      data: {
+        likedBy: {
+          connect: { id: userId },
+        },
+        post: {
+          connect: { id: postId },
+        },
+      },
+    });
+
     return NextResponse.json(
-      { error: 'Failed to process like action' },
-      { status: 500 }
+      { message: 'Post liked successfully', isLiked: true },
+      { status: 201 }
     );
+  } catch (error) {
+    console.error('Failed to like post:', error);
+    return NextResponse.json({ error: 'Failed to like post' }, { status: 500 });
   }
 }
