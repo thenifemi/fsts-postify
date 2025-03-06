@@ -3,6 +3,28 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/server/auth/auth';
 import { db } from '@/server/prisma/db';
 
+// Define the extended comment type with isLiked and isDisliked properties
+interface CommentWithInteractions {
+  id: string;
+  content: string | null;
+  postId: string;
+  imageUrls: string[];
+  authorId: string;
+  createdAt: Date;
+  author: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+  _count: {
+    likes: number;
+    dislikes: number;
+  };
+  isLiked?: boolean;
+  isDisliked?: boolean;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { postId: string } }
@@ -22,7 +44,7 @@ export async function GET(
     }
 
     // Fetch comments for the post
-    const comments = await db.comment.findMany({
+    const comments = (await db.comment.findMany({
       where: { postId },
       include: {
         author: {
@@ -41,14 +63,14 @@ export async function GET(
         },
       },
       orderBy: { createdAt: 'desc' },
-    });
+    })) as unknown as CommentWithInteractions[];
 
     // If user is authenticated, check which comments they've liked/disliked
     if (userId) {
       const userLikes = await db.like.findMany({
         where: {
           likedById: userId,
-          commentId: { in: comments.map(comment => comment.id) },
+          commentId: { in: comments.map((comment) => comment.id) },
         },
         select: {
           commentId: true,
@@ -58,7 +80,7 @@ export async function GET(
       const userDislikes = await db.dislike.findMany({
         where: {
           dislikedById: userId,
-          commentId: { in: comments.map(comment => comment.id) },
+          commentId: { in: comments.map((comment) => comment.id) },
         },
         select: {
           commentId: true,
@@ -66,11 +88,13 @@ export async function GET(
       });
 
       // Create lookup sets for faster checking
-      const likedCommentIds = new Set(userLikes.map(like => like.commentId));
-      const dislikedCommentIds = new Set(userDislikes.map(dislike => dislike.commentId));
+      const likedCommentIds = new Set(userLikes.map((like) => like.commentId));
+      const dislikedCommentIds = new Set(
+        userDislikes.map((dislike) => dislike.commentId)
+      );
 
       // Add isLiked and isDisliked flags to each comment
-      comments.forEach(comment => {
+      comments.forEach((comment) => {
         comment.isLiked = likedCommentIds.has(comment.id);
         comment.isDisliked = dislikedCommentIds.has(comment.id);
       });
@@ -140,7 +164,7 @@ export async function POST(
         author: {
           select: {
             id: true,
-            name: true, 
+            name: true,
             email: true,
             image: true,
           },
