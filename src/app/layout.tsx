@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { SessionProvider } from './context/session-provider';
 import { Header } from './components/header';
 import { Toaster } from './components/ui/toaster';
+import { ReactQueryProvider } from './components/query-provider';
 
 const montserrat = Montserrat({
   subsets: ['latin'],
@@ -27,11 +28,13 @@ export default function RootLayout({
     <html lang='en' suppressHydrationWarning>
       <body className={cn(montserrat.className)}>
         <SessionProvider>
-          <ThemeProvider attribute='class' defaultTheme='dark' enableSystem>
-            <Header />
-            {children}
-            <Toaster />
-          </ThemeProvider>
+          <ReactQueryProvider>
+            <ThemeProvider attribute='class' defaultTheme='dark' enableSystem>
+              <Header />
+              {children}
+              <Toaster />
+            </ThemeProvider>
+          </ReactQueryProvider>
         </SessionProvider>
       </body>
     </html>

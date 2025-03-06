@@ -4,8 +4,6 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/server/auth/auth';
 import { db } from '@/server/prisma/db';
 
-// No longer needed since we only use IDs
-
 export async function GET({ params }: { params: { postId: string } }) {
   try {
     const postId = params.postId;
