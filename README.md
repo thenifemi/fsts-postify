@@ -2,7 +2,7 @@
 
 Postify is a modern social media platform for sharing posts, photos, and engaging with other users. Built with Next.js, TypeScript, and Prisma, it provides a seamless experience for content creation and interaction.
 
-![Postify logo](/public/postify.png)
+![Postify logo|200x200](/public/postify.png){width=100 height=100}
 
 ## Table of Contents
 
