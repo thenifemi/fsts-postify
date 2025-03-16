@@ -10,12 +10,12 @@ import {
 import { AUTH_ROUTES } from '@/app/api/route_paths';
 import { GithubIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/app/components/ui/button';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from '@/app/context/session-provider';
 import { authError } from '@/app/utils/error-handler';
 
-export function LoginForm() {
+function LoginFormContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(false);
   const router = useRouter();
@@ -36,7 +36,7 @@ export function LoginForm() {
       setIsLoading(false);
     }
   }, [searchParams, router]);
-
+  
   const handleLogin = async () => {
     // Prevent multiple clicks
     if (isLoading) return;
@@ -84,5 +84,33 @@ export function LoginForm() {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// Skeleton component to show while suspended
+function LoginFormSkeleton() {
+  return (
+    <Card className='w-full max-w-md space-y-2'>
+      <CardHeader>
+        <CardTitle>Postify</CardTitle>
+        <CardDescription>Continue to your account</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className='flex flex-col gap-6'>
+          <Button disabled className='cursor-wait'>
+            <Loader2 className='w-4 h-4 mr-2 animate-spin' />
+            Loading...
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function LoginForm() {
+  return (
+    <Suspense fallback={<LoginFormSkeleton />}>
+      <LoginFormContent />
+    </Suspense>
   );
 }

@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { commentId: string } }
-) {
+  context: { params: { commentId: string } }
+): Promise<NextResponse> {
   try {
     const session = await auth();
 
@@ -13,7 +13,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const commentId = params.commentId;
+    const commentId = context.params.commentId;
     const userId = session.user.id;
 
     // Verify comment exists
@@ -59,7 +59,7 @@ export async function DELETE(
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error(`Error deleting comment ${params.commentId}:`, error);
+    console.error(`Error deleting comment ${context.params.commentId}:`, error);
     return NextResponse.json(
       { error: 'Failed to delete comment' },
       { status: 500 }

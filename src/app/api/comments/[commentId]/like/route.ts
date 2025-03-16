@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { commentId: string } }
-) {
+  context: { params: { commentId: string } }
+): Promise<NextResponse> {
   try {
     const session = await auth();
 
@@ -13,7 +13,7 @@ export async function POST(
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const commentId = params.commentId;
+    const commentId = context.params.commentId;
     const userId = session.user.id;
 
     // Verify comment exists
@@ -82,7 +82,7 @@ export async function POST(
       );
     }
   } catch (error) {
-    console.error(`Error liking/unliking comment ${params.commentId}:`, error);
+    console.error(`Error liking/unliking comment ${context.params.commentId}:`, error);
     return NextResponse.json(
       { error: 'Failed to process like action' },
       { status: 500 }
